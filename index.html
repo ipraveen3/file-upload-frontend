@@ -2,11 +2,60 @@
 <html>
 <head>
 <title>Page Title</title>
+
+<script>
+    window.onload = function(){
+        //alert("hello")
+        function processForm(e) {
+            if (e.preventDefault) e.preventDefault();
+            console.log("inprocessform")
+
+            const data = { a: '23678' };
+
+            console.log(JSON.stringify(data))
+
+            fetch('https://papwyg23j8.execute-api.us-east-1.amazonaws.com/Prod/Lambda_api-lambda-db', {
+            method: 'POST', // or 'PUT'
+            //mode: 'no-cors',
+            
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+            console.log('Success:', data);
+            })
+            .catch((error) => {
+            console.error('Error:', error);
+            });
+
+            /* do what you want with the form */
+
+            // You must return false to prevent the default form behavior
+            return false;
+        }
+
+        var form = document.getElementById('id_file_upd_form');
+        if (form.attachEvent) {
+            form.attachEvent("submit", processForm);
+        } else {
+            form.addEventListener("submit", processForm);
+        }
+    }
+
+</script>
+
 </head>
 <body>
-
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
+    <form id="id_file_upd_form">
+        <!-- <label for="id_ipt_txt">Text input:</label> <input id= "id_ipt_txt" idtype="text" name="text_data" > <br> -->
+        <!-- <label for="id_choose_file">File input:</label> <input id="id_choose_file" type="file" name="file_data"/><br> -->
+        <label for="id_choose_a">File input:</label> <input id="id_choose_a" idtype="text" name="a"/><br>
+        <input type="submit" value="Submit">
+    </form>
 
 </body>
 </html>
