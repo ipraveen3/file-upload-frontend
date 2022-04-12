@@ -5,36 +5,62 @@
 
 <script>
     window.onload = function(){
-        //alert("hello")
+
         function processForm(e) {
             if (e.preventDefault) e.preventDefault();
             console.log("inprocessform")
 
-            const data = { a: '23678' };
 
-            console.log(JSON.stringify(data))
+            const ipt_files = document.getElementById('id_choose_file');
 
+            var ipt_file = ipt_files.files[0];
+
+            var ipt_txt = document.getElementById("id_ipt_txt").value
+            const data = { text_input: ipt_txt };
+
+            var result = 
             fetch('https://papwyg23j8.execute-api.us-east-1.amazonaws.com/Prod/Lambda_api-lambda-db', {
-            method: 'POST', // or 'PUT'
-            //mode: 'no-cors',
-            
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data),
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data),
             })
             .then(response => response.json())
             .then(data => {
-            console.log('Success:', data);
+            return data;
             })
             .catch((error) => {
             console.error('Error:', error);
             });
 
-            /* do what you want with the form */
+            const postFile = async () => {
+                try{
+                    const resp = await result;
+                    const formData = new FormData();
+                    const fields = resp.body.fields
+                    for(const property in fields){
+                        formData.append(property,fields[property])
+                    }
+                    formData.append('file',ipt_file);
+                    const response = await fetch(resp.body.url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    console.log('response status:',response.status);
+                    //TODO handle response 204 to show feedback
+                }catch(err){
+                    console.log("Error posting file to s3 bucket\n");
+                    console.log(err);
+                }
 
-            // You must return false to prevent the default form behavior
+            }
+
+            postFile();
+
+
+
             return false;
         }
 
@@ -51,9 +77,9 @@
 </head>
 <body>
     <form id="id_file_upd_form">
-        <!-- <label for="id_ipt_txt">Text input:</label> <input id= "id_ipt_txt" idtype="text" name="text_data" > <br> -->
-        <!-- <label for="id_choose_file">File input:</label> <input id="id_choose_file" type="file" name="file_data"/><br> -->
-        <label for="id_choose_a">File input:</label> <input id="id_choose_a" idtype="text" name="a"/><br>
+        <label for="id_ipt_txt">Text input:</label> <input id= "id_ipt_txt" idtype="text" name="text_data" > <br>
+        <label for="id_choose_file">File input:</label> <input id="id_choose_file" type="file" name="file_data"/><br>
+        <!--<label for="id_choose_a">File input:</label> <input id="id_choose_a" idtype="text" name="a"/><br>-->
         <input type="submit" value="Submit">
     </form>
 
