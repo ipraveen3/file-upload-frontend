@@ -1,12 +1,133 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Page Title</title>
+<title>File Processor</title>
+    <!-- Required meta tags -->
+    <!-- boostrap -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <style>
+        .upload_file{
+            max-width: 1000px;
+            margin:50px auto;
+            position: relative;
+            box-shadow: 0 10px 30px 0px rgba(0,0,0,0.1);
+            padding:30px;
+        }
+        .upload_file .title{
+            text-transform: uppercase;
+            text-align:center;
+            letter-spacing:3px;
+            font-size: 3em;
+            line-height: 48px;
+            padding-bottom:20px;
+            color: #5543ca;
+            background: linear-gradient(to right, #f4524d 0%,#5543ca 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .upload-file-form .form-field{
+            position: relative;
+            margin: 32px 0;
+        }
+        .upload-file-form .file-upload-text{
+            position:absolute;
+            left: 20px;
+            bottom: 11px;
+            font-size: 18px;
+            line-height: 26px;
+            font-weight: 400;
+            color: #5543ca;
+        }
+        .upload-file-form .input-text{
+            display: block;
+            width: 100%;
+            height: 36px;
+            border-width: 0 0 2px 0;
+            border-color: #5543ca;
+            font-size: 18px;
+            line-height: 26px;
+            font-weight: 400;
+        }
+
+        .upload-file-form .input-text:focus + .label, 
+        .upload-file-form .input-text:not(:placeholder-shown) + .label {
+            transform: translateY(-24px);
+        }
+
+        .upload-file-form .file_label{
+            display: block;
+            width: 100%;
+            height: 36px;
+            border-width: 0 0 2px 0;
+            border-color: #5543ca;
+            font-size: 18px;
+            line-height: 26px;
+            font-weight: 400;
+            
+            color: #5543ca;
+            text-transform: capitalize;
+        }
+        .upload-file-form .file_button{
+            display: block;
+            width: 100%;
+            height: 36px;
+            border-width: 0 0 2px 0;
+            border-color: #5543ca;
+            font-size: 18px;
+            line-height: 26px;
+            font-weight: 400;
+            color: #5543ca;
+            text-transform: capitalize;
+        }
+
+        .upload-file-form .input-text:focus{
+            outline:none;
+        }
+        .upload-file-form .label{
+            position:absolute;
+            left: 20px;
+            bottom: 11px;
+            font-size: 18px;
+            line-height: 26px;
+            font-weight: 400;
+            color: #5543ca;
+            cursor: text;
+            text-transform: capitalize;
+            transition: transform 0.2s ease-in-out;
+        }
+        .upload-file-form .submit-btn{
+            display: inline-block;
+            background-image: linear-gradient(125deg, #a72879, #064497);
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 16px;
+            padding: 8px 16px;
+            border: none;
+            width: 200px;
+            cursor: pointer;
+        }
+
+
+        .upload-file-form .upload-text{
+            color: #009579;
+        }
+
+        .upload-file-form .upload-text-fail{
+            color: #FF0000;
+        }
+
+
+    </style>
 <script>
-    window.onload = function(){
 
+    window.onload = function(){
+        hideMessages();
         function processForm(e) {
+            showUploading();
             if (e.preventDefault) e.preventDefault();
             console.log("inprocessform")
 
@@ -16,10 +137,11 @@
             var ipt_file = ipt_files.files[0];
 
             var ipt_txt = document.getElementById("id_ipt_txt").value
-            const data = { text_input: ipt_txt };
+            const data = { text_input: ipt_txt, ipt_file_name: ipt_file.name }; 
+            
 
             var result = 
-            fetch('https://papwyg23j8.execute-api.us-east-1.amazonaws.com/Prod/Lambda_api-lambda-db', {
+            fetch('https://8b8pugoop5.execute-api.us-east-1.amazonaws.com/Prod/Lambda_api-lambda-db', {
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',
@@ -32,6 +154,7 @@
             return data;
             })
             .catch((error) => {
+            
             console.error('Error:', error);
             });
 
@@ -49,8 +172,15 @@
                         body: formData
                     });
                     console.log('response status:',response.status);
-                    //TODO handle response 204 to show feedback
+                    console.log('type:',typeof response.status);
+                    if(response.status == 204){
+                        //alert('upload success');
+                        showUploadSuccess();
+                        setTimeout( () => {hideMessages()}, 5000);
+                    }
+
                 }catch(err){
+                    showUploadFailure();
                     console.log("Error posting file to s3 bucket\n");
                     console.log(err);
                 }
@@ -70,18 +200,76 @@
         } else {
             form.addEventListener("submit", processForm);
         }
+
+        function showUploading(){
+            document.getElementById("msg_uploading").style.display = "block";
+            document.getElementById("msg_upload_success").style.display = "none"
+            document.getElementById("msg_upload_failure").style.display = "none"
+        }
+        
+        function hideMessages(){
+            document.getElementById("msg_uploading").style.display = "none";
+            document.getElementById("msg_upload_success").style.display = "none"
+            document.getElementById("msg_upload_failure").style.display = "none"
+        }
+
+        function showUploadSuccess(){
+            document.getElementById("msg_uploading").style.display = "none";
+            document.getElementById("msg_upload_success").style.display = "block"
+            document.getElementById("msg_upload_failure").style.display = "none"
+        }
+        function showUploadFailure(){
+            document.getElementById("msg_uploading").style.display = "none";
+            document.getElementById("msg_upload_success").style.display = "none"
+            document.getElementById("msg_upload_failure").style.display = "block"
+            
+        }
+
     }
 
 </script>
 
 </head>
 <body>
-    <form id="id_file_upd_form">
-        <label for="id_ipt_txt">Text input:</label> <input id= "id_ipt_txt" idtype="text" name="text_data" > <br>
-        <label for="id_choose_file">File input:</label> <input id="id_choose_file" type="file" name="file_data"/><br>
-        <!--<label for="id_choose_a">File input:</label> <input id="id_choose_a" idtype="text" name="a"/><br>-->
-        <input type="submit" value="Submit">
+    <form class="upload_file" id="id_file_upd_form">
+        <h1 class ="title">Upload file</h1>
+        <div class="container">
+            <div class="upload-file-form row">
+                <div class="form-field col-lg-4">
+                    <input class="input-text" id= "id_ipt_txt" idtype="text" name="text_data" placeholder=" ">
+                    <label class="label ipt-text-label" for="id_ipt_txt">Text input</label>
+                </div>
+                <div class="form-field col-lg-8">
+
+                    <div class="row">
+
+                        <div class="col-lg-2"></div>
+                        <div class="col-lg-2"><label class="file_label t" for="id_ipt_txt">File input:</label></div>
+                        <div class="col-lg-6"><input class="input file_button" id="id_choose_file" type="file" name="file_data"/></div>
+                        
+                    </div>
+                        
+                </div>
+                <div class="form-field col-lg-12 text-center">
+                    
+                    <input class="submit-btn" type="submit" value="Submit">
+                    
+                </div>
+                <div class="form-field col-lg-12 text-center">
+                    <div class="row">
+                        <div id ="msg_uploading" class="label upload-text">Uploading...</div>
+                        <div id ="msg_upload_success" class="label upload-text">File Upload Sucessful</div>
+                        <div id ="msg_upload_failure" class="label upload-text-fail">File Upload Failed</div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
     </form>
+    
+    <!-- boostrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
 
 </body>
 </html>
